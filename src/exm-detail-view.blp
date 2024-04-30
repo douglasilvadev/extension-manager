@@ -2,70 +2,27 @@ using Gtk 4.0;
 using Adw 1;
 
 template $ExmDetailView : Adw.NavigationPage {
-
 	Adw.ToolbarView {
 
 		[top]
-		Adw.HeaderBar {
+		Adw.HeaderBar header_bar {
 			title-widget: Adw.WindowTitle title {};
 		}
 
-		content: Gtk.Overlay {
-			[overlay]
-			Gtk.Overlay image_overlay {
-				visible: false;
+		content: Adw.BreakpointBin {
+			width-request: 360;
+			height-request: 294;
 
-				[overlay]
-				Gtk.Box {
-					orientation: horizontal;
-					spacing: 16;
-
-					halign: end;
-					valign: end;
-
-					margin-top: 24;
-					margin-bottom: 24;
-					margin-start: 24;
-					margin-end: 24;
-
-					Gtk.Box {
-						styles ["linked"]
-
-						Gtk.Button {
-							styles ["osd", "circular"]
-							icon-name: "zoom-in-symbolic";
-
-							tooltip-text: _("Zoom In");
-
-							action-name: "detail.zoom-in";
-						}
-
-						Gtk.Button {
-							styles ["osd", "circular"]
-							icon-name: "zoom-out-symbolic";
-
-							tooltip-text: _("Zoom Out");
-
-							action-name: "detail.zoom-out";
-						}
-					}
-
-					Gtk.Button ext_screenshot_popin_button {
-						styles ["osd", "circular"]
-						icon-name: "pip-in-symbolic";
-
-						tooltip-text: _("Return to view");
-					}
+			Adw.Breakpoint {
+				condition ("max-width: 400sp")
+				setters {
+					ext_info_bar.orientation: vertical;
+					header_suffix.orientation: vertical;
+					header_suffix.spacing: 12;
+					ext_install.halign: start;
 				}
-
-				Adw.Bin {
-					styles ["tint"]
-
-					hexpand: true;
-					vexpand: true;
-
-					$ExmZoomPicture overlay_screenshot {}
-				}
+				apply => $breakpoint_apply_cb() swapped;
+				unapply => $breakpoint_unapply_cb() swapped;
 			}
 
 			Gtk.Stack stack {
@@ -74,10 +31,21 @@ template $ExmDetailView : Adw.NavigationPage {
 				Gtk.StackPage {
 					name: "page_spinner";
 
-					child: Gtk.Spinner {
-						spinning: true;
-						halign: center;
+					child: Gtk.Box {
+						orientation: vertical;
+						spacing: 24;
 						valign: center;
+
+						Gtk.Spinner {
+							spinning: true;
+							height-request: 32;
+							width-request: 32;
+						}
+
+						Gtk.Label {
+							styles["title-1"]
+							label: _("Loading Details");
+						}
 					};
 				}
 
@@ -99,33 +67,45 @@ template $ExmDetailView : Adw.NavigationPage {
 							Gtk.Box {
 								styles ["detail"]
 								orientation: vertical;
-								spacing: 25;
+								spacing: 24;
 
 								Gtk.Box header {
 									orientation: horizontal;
-									spacing: 25;
+									spacing: 24;
 
-									Gtk.Box {
-										orientation: vertical;
-										hexpand: true;
-
-										Gtk.Label ext_title {
-											styles ["title-1"]
-											xalign: 0;
-											ellipsize: end;
-										}
-
-										Gtk.Label ext_author {
-											styles ["dim-label"]
-											label: "Author";
-											xalign: 0;
-											ellipsize: end;
-										}
+									Gtk.Image ext_icon {
+										halign: center;
+										valign: center;
+										pixel-size: 64;
 									}
 
-									$ExmInstallButton ext_install {
-										valign: center;
-										halign: center;
+									Gtk.Box header_suffix {
+										orientation: horizontal;
+										spacing: 24;
+
+										Gtk.Box {
+											orientation: vertical;
+											hexpand: true;
+											valign: center;
+
+											Gtk.Label ext_title {
+												styles ["title-1"]
+												xalign: 0;
+												ellipsize: end;
+											}
+
+											Gtk.Label ext_author {
+												styles ["dim-label"]
+												label: "Author";
+												xalign: 0;
+												ellipsize: end;
+											}
+										}
+
+										$ExmInstallButton ext_install {
+											valign: center;
+											halign: center;
+										}
 									}
 								}
 
@@ -143,6 +123,7 @@ template $ExmDetailView : Adw.NavigationPage {
 										margin-end: 8;
 
 										tooltip-text: _("Enlarge image");
+										clicked => $screenshot_view_cb(template);
 									}
 
 									$ExmScreenshot ext_screenshot {}
@@ -237,9 +218,9 @@ template $ExmDetailView : Adw.NavigationPage {
 										Gtk.StackPage {
 											name: "page_spinner";
 
-											child: Gtk.Spinner {
-												spinning: true;
-												halign: center;
+											child: Gtk.Image {
+												icon-name: "content-loading-symbolic";
+												icon-size: large;
 												valign: center;
 											};
 										}

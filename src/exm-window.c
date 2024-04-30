@@ -37,7 +37,6 @@ struct _ExmWindow
     ExmManager *manager;
 
     /* Template widgets */
-    AdwBreakpoint        *main_breakpoint;
     AdwHeaderBar         *header_bar;
     ExmBrowsePage        *browse_page;
     ExmInstalledPage     *installed_page;
@@ -47,6 +46,8 @@ struct _ExmWindow
     AdwViewSwitcher      *title;
     AdwViewStack         *view_stack;
     AdwToastOverlay      *toast_overlay;
+    AdwAlertDialog       *remove_dialog;
+    AdwAlertDialog       *unsupported_dialog;
 };
 
 G_DEFINE_TYPE (ExmWindow, exm_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -117,27 +118,6 @@ extension_open_prefs (GtkWidget  *widget,
     exm_manager_open_prefs (self->manager, extension);
 }
 
-static void
-extension_state_set (GtkWidget  *widget,
-                     const char *action_name,
-                     GVariant   *param)
-{
-    ExmWindow *self;
-    ExmExtension *extension;
-    gchar *uuid;
-    gboolean state;
-
-    self = EXM_WINDOW (widget);
-    g_variant_get (param, "(sb)", &uuid, &state);
-
-    extension = exm_manager_get_by_uuid (self->manager, uuid);
-
-    if (state)
-        exm_manager_enable_extension (self->manager, extension);
-    else
-        exm_manager_disable_extension (self->manager, extension);
-}
-
 typedef struct
 {
     ExmManager *manager;
@@ -145,11 +125,11 @@ typedef struct
 } RemoveDialogData;
 
 static void
-extension_remove_dialog_response (GtkDialog        *dialog,
-                                  const char       *response,
+extension_remove_dialog_response (AdwAlertDialog   *dialog,
+                                  GAsyncResult     *result,
                                   RemoveDialogData *data)
 {
-    gtk_window_destroy (GTK_WINDOW (dialog));
+    const char *response = adw_alert_dialog_choose_finish (dialog, result);
 
     if (strcmp(response, "yes") == 0)
     {
@@ -175,28 +155,12 @@ extension_remove (GtkWidget  *widget,
 
     extension = exm_manager_get_by_uuid (self->manager, uuid);
 
-    GtkWidget *dlg;
-
-    dlg = adw_message_dialog_new (GTK_WINDOW (self),
-                                  _("Uninstall Extension?"),
-                                  _("The extension's features and functionality will no longer be accessible. Are you sure you want to uninstall?"));
-
-    adw_message_dialog_add_responses (ADW_MESSAGE_DIALOG (dlg),
-                                      "no", _("_No"),
-                                      "yes", _("_Yes"),
-                                      NULL);
-
-    adw_message_dialog_set_response_appearance (ADW_MESSAGE_DIALOG (dlg), "yes", ADW_RESPONSE_DESTRUCTIVE);
-
-    adw_message_dialog_set_default_response (ADW_MESSAGE_DIALOG (dlg), "no");
-    adw_message_dialog_set_close_response (ADW_MESSAGE_DIALOG (dlg), "no");
-
     RemoveDialogData *data = g_new0 (RemoveDialogData, 1);
     data->manager = g_object_ref (self->manager);
     data->extension = g_object_ref (extension);
 
-    g_signal_connect (dlg, "response", G_CALLBACK (extension_remove_dialog_response), data);
-    gtk_window_present (GTK_WINDOW (dlg));
+    adw_alert_dialog_choose (self->remove_dialog, widget, NULL,
+                             (GAsyncReadyCallback) extension_remove_dialog_response, data);
 }
 
 static void
@@ -218,13 +182,13 @@ typedef struct
 } UnsupportedDialogData;
 
 static void
-extension_unsupported_dialog_response (GtkDialog             *dialog,
-                                       const char            *response,
+extension_unsupported_dialog_response (AdwAlertDialog        *dialog,
+                                       GAsyncResult          *result,
                                        UnsupportedDialogData *data)
 {
-    gtk_window_destroy (GTK_WINDOW (dialog));
+    const char *response = adw_alert_dialog_choose_finish (dialog, result);
 
-    if (strcmp(response, "yes") == 0)
+    if (strcmp(response, "install") == 0)
     {
         exm_manager_install_async (data->manager, data->uuid, NULL,
                                    (GAsyncReadyCallback) on_install_done,
@@ -250,29 +214,12 @@ extension_install (GtkWidget  *widget,
 
     if (warn)
     {
-        GtkWidget *dlg;
-
-        dlg = adw_message_dialog_new (GTK_WINDOW (self),
-                                      _("Unsupported Extension"),
-                                      _("This extension does not support your GNOME Shell version. It may cause errors if installed."));
-
-        adw_message_dialog_add_responses (ADW_MESSAGE_DIALOG (dlg),
-                                          "yes", _("_Install Anyway"),
-                                          "no", _("_Go Back"),
-                                          NULL);
-
-        adw_message_dialog_set_response_appearance (ADW_MESSAGE_DIALOG (dlg), "yes", ADW_RESPONSE_DESTRUCTIVE);
-        adw_message_dialog_set_response_appearance (ADW_MESSAGE_DIALOG (dlg), "no", ADW_RESPONSE_SUGGESTED);
-
-        adw_message_dialog_set_default_response (ADW_MESSAGE_DIALOG (dlg), "no");
-        adw_message_dialog_set_close_response (ADW_MESSAGE_DIALOG (dlg), "no");
-
         UnsupportedDialogData *data = g_new0 (UnsupportedDialogData, 1);
         data->manager = g_object_ref (self->manager);
         data->uuid = g_strdup (uuid);
 
-        g_signal_connect (dlg, "response", G_CALLBACK (extension_unsupported_dialog_response), data);
-        gtk_window_present (GTK_WINDOW (dlg));
+        adw_alert_dialog_choose (self->unsupported_dialog, widget, NULL,
+                                 (GAsyncReadyCallback) extension_unsupported_dialog_response, data);
 
         return;
     }
@@ -316,8 +263,6 @@ show_view (GtkWidget  *widget,
 
         exm_detail_view_load_for_uuid (self->detail_view, uuid);
 
-        exm_detail_view_adaptive (self->detail_view, self->main_breakpoint);
-
         return;
     }
 
@@ -334,9 +279,7 @@ show_upgrade_assistant (GtkWidget  *widget,
     self = EXM_WINDOW (widget);
 
     ExmUpgradeAssistant *assistant = exm_upgrade_assistant_new (self->manager);
-    gtk_window_set_modal (GTK_WINDOW (assistant), TRUE);
-    gtk_window_set_transient_for (GTK_WINDOW (assistant), GTK_WINDOW (self));
-    gtk_window_present (GTK_WINDOW (assistant));
+    adw_dialog_present (ADW_DIALOG (assistant), widget);
 }
 
 static void
@@ -409,7 +352,6 @@ exm_window_class_init (ExmWindowClass *klass)
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
     gtk_widget_class_set_template_from_resource (widget_class, "/com/mattjakeman/ExtensionManager/exm-window.ui");
-    gtk_widget_class_bind_template_child (widget_class, ExmWindow, main_breakpoint);
     gtk_widget_class_bind_template_child (widget_class, ExmWindow, header_bar);
     gtk_widget_class_bind_template_child (widget_class, ExmWindow, installed_page);
     gtk_widget_class_bind_template_child (widget_class, ExmWindow, browse_page);
@@ -419,13 +361,14 @@ exm_window_class_init (ExmWindowClass *klass)
     gtk_widget_class_bind_template_child (widget_class, ExmWindow, title);
     gtk_widget_class_bind_template_child (widget_class, ExmWindow, view_stack);
     gtk_widget_class_bind_template_child (widget_class, ExmWindow, toast_overlay);
+    gtk_widget_class_bind_template_child (widget_class, ExmWindow, remove_dialog);
+    gtk_widget_class_bind_template_child (widget_class, ExmWindow, unsupported_dialog);
 
     // TODO: Refactor ExmWindow into a separate ExmController and supply the
     // necessary actions/methods/etc in there. A reference to this new object can
     // then be passed to each page.
     gtk_widget_class_install_action (widget_class, "ext.install", "(sb)", extension_install);
     gtk_widget_class_install_action (widget_class, "ext.remove", "s", extension_remove);
-    gtk_widget_class_install_action (widget_class, "ext.state-set", "(sb)", extension_state_set);
     gtk_widget_class_install_action (widget_class, "ext.open-prefs", "s", extension_open_prefs);
     gtk_widget_class_install_action (widget_class, "win.show-detail", "s", show_view);
     gtk_widget_class_install_action (widget_class, "win.show-main", NULL, show_view);
@@ -454,21 +397,14 @@ do_version_check (ExmWindow *self)
 static void
 exm_window_init (ExmWindow *self)
 {
-    gchar *title;
-
     gtk_widget_init_template (GTK_WIDGET (self));
 
-    if (IS_DEVEL) {
+    if (strstr (APP_ID, ".Devel") != NULL) {
         gtk_widget_add_css_class (GTK_WIDGET (self), "devel");
     }
 
     self->manager = exm_manager_new ();
     g_signal_connect (self->manager, "error-occurred", on_error, self);
-
-    title = IS_DEVEL ? _("Extension Manager (Development)") : _("Extension Manager");
-
-    gtk_window_set_title (GTK_WINDOW (self), title);
-    adw_navigation_page_set_title (self->main_view, title);
 
     g_object_set (self->installed_page, "manager", self->manager, NULL);
     g_object_set (self->browse_page, "manager", self->manager, NULL);

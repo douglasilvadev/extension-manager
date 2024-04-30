@@ -28,7 +28,7 @@
 
 struct _ExmUpgradeAssistant
 {
-    AdwWindow parent_instance;
+    AdwDialog parent_instance;
 
     // Auxiliary Classes
     ExmManager *manager;
@@ -66,7 +66,7 @@ struct _ExmUpgradeAssistant
     GtkButton *copy_details;
 };
 
-G_DEFINE_FINAL_TYPE (ExmUpgradeAssistant, exm_upgrade_assistant, ADW_TYPE_WINDOW)
+G_DEFINE_FINAL_TYPE (ExmUpgradeAssistant, exm_upgrade_assistant, ADW_TYPE_DIALOG)
 
 enum {
     PROP_0,
@@ -173,7 +173,7 @@ update_checked_count (ExmUpgradeAssistant *self)
 {
     char *text;
 
-    text = g_strdup_printf (_("Checked %d/%d extensions"),
+    text = g_strdup_printf (_("Checked %d/%d Extensions"),
                             self->number_checked,
                             self->total_extensions);
 
@@ -573,10 +573,12 @@ populate_drop_down (ExmUpgradeAssistant *self)
     // GNOME 40 came out in March 2021
     current_gnome_version = 40 + (year - 2021) * 2;
 
-    // If we are between september and march, then it is
-    // an odd numbered release, otherwise use an even numbered
+    // If we are between march and september, then it is
+    // an even numbered release, otherwise use an odd numbered
     // release.
-    if (month >= G_DATE_SEPTEMBER || month < G_DATE_MARCH)
+    if (month < G_DATE_MARCH)
+        current_gnome_version -= 1;
+    else if (month >= G_DATE_SEPTEMBER)
         current_gnome_version += 1;
 
     g_print ("Current GNOME Version: %d\n", current_gnome_version);
@@ -652,7 +654,9 @@ exm_upgrade_assistant_class_init (ExmUpgradeAssistantClass *klass)
     gtk_widget_class_bind_template_child (widget_class, ExmUpgradeAssistant, summary);
     gtk_widget_class_bind_template_child (widget_class, ExmUpgradeAssistant, copy_details);
 
-    gtk_widget_class_add_binding_action (widget_class, GDK_KEY_Escape, 0, "window.close", NULL);
+    gtk_widget_class_bind_template_callback (widget_class, do_compatibility_check);
+    gtk_widget_class_bind_template_callback (widget_class, copy_to_clipboard);
+    gtk_widget_class_bind_template_callback (widget_class, on_bind_manager);
 }
 
 static void
@@ -661,21 +665,6 @@ exm_upgrade_assistant_init (ExmUpgradeAssistant *self)
     GtkWidget *placeholder, *icon;
 
     gtk_widget_init_template (GTK_WIDGET (self));
-
-    g_signal_connect_swapped (self->run_button,
-                              "clicked",
-                              G_CALLBACK (do_compatibility_check),
-                              self);
-
-    g_signal_connect_swapped (self->copy_details,
-                              "clicked",
-                              G_CALLBACK (copy_to_clipboard),
-                              self);
-
-    g_signal_connect (self,
-                      "notify::manager",
-                      G_CALLBACK (on_bind_manager),
-                      NULL);
 
     self->data_provider = exm_data_provider_new ();
     self->target_shell_version = NULL;

@@ -32,7 +32,7 @@
 
 #if WITH_BACKTRACE
 static struct backtrace_state *state = NULL;
-#endif
+static int frames_omitted_count = 0;
 
 static void
 exm_backtrace_error_cb (void       *data,
@@ -50,12 +50,27 @@ exm_backtrace_full_cb (GString    *string_builder,
                        const char *function)
 {
     char *entry;
+
     entry = g_strdup_printf ("%s:%d '%s'\n", filename, lineno, function);
-    g_string_append (string_builder, entry);
-    g_free (entry);
+
+    if (strstr (entry, "null") != NULL)
+        frames_omitted_count++;
+    else
+    {
+        if (frames_omitted_count > 0)
+        {
+            g_string_append_printf (string_builder, "%d frame%s omitted\n",
+                                    frames_omitted_count,
+                                    (frames_omitted_count > 1) ? "s" : "");
+            frames_omitted_count = 0;
+        }
+        g_string_append (string_builder, entry);
+        g_free (entry);
+    }
 
     return 0;
 }
+#endif
 
 void
 exm_backtrace_init (char *filename)

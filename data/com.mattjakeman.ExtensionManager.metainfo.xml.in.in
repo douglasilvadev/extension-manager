@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-	<id>@app_id@.desktop</id>
+	<id>@app_id@</id>
 	<metadata_license>CC0-1.0</metadata_license>
 	<project_license>GPL-3.0-or-later</project_license>
-  <name>@app_title@</name>
+  <name>Extension Manager</name>
   <summary>Browse, install, and manage GNOME Shell Extensions</summary>
   <content_rating type="oars-1.1" />
-  <developer_name translatable="no">Matthew Jakeman</developer_name>
+  <developer id="com.mattjakeman">
+    <name translate="no">Matthew Jakeman</name>
+  </developer>
 	<description>
 	  <p>A utility for browsing and installing GNOME Shell Extensions.</p>
     <p>Features:</p>
@@ -17,26 +19,26 @@
 	</description>
   <screenshots>
     <screenshot type="default">
-      <caption>A utility for managing GNOME Shell Extensions</caption>
-      <image width="2099" height="1556">https://raw.githubusercontent.com/mjakeman/extension-manager/master/data/screenshot-combined.png?token=GHSAT0AAAAAABQAZ3HOIYZECGZ6OIPZYE4IYPCKHVQ</image>
-    </screenshot>
-    <screenshot type="default">
       <caption>Browse extensions.gnome.org right inside the app</caption>
-      <image width="1844" height="1444">https://raw.githubusercontent.com/mjakeman/extension-manager/master/data/screenshot-browse.png?token=GHSAT0AAAAAABQAZ3HOZ6FIJC5TTAO6FSN6YPCKI3A</image>
+      <image>https://raw.githubusercontent.com/mjakeman/extension-manager/master/data/screenshot-browse.png?token=GHSAT0AAAAAABQAZ3HOZ6FIJC5TTAO6FSN6YPCKI3A</image>
     </screenshot>
     <screenshot type="default">
       <caption>Manage the extensions you already have installed</caption>
-      <image width="1844" height="1444">https://raw.githubusercontent.com/mjakeman/extension-manager/master/data/screenshot-installed.png?token=GHSAT0AAAAAABQAZ3HODHOYG7PH5I2RBLQSYPCKI3A</image>
+      <image>https://raw.githubusercontent.com/mjakeman/extension-manager/master/data/screenshot-installed-dark.png?token=GHSAT0AAAAAABQAZ3HODHOYG7PH5I2RBLQSYPCKI3A</image>
+    </screenshot>
+    <screenshot type="default">
+      <caption>A utility for managing GNOME Shell Extensions</caption>
+      <image>https://raw.githubusercontent.com/mjakeman/extension-manager/master/data/screenshot-details.png?token=GHSAT0AAAAAABQAZ3HOIYZECGZ6OIPZYE4IYPCKHVQ</image>
     </screenshot>
   </screenshots>
   <launchable type="desktop-id">@app_id@.desktop</launchable>
-  <url type="homepage">https://github.com/mjakeman/extension-manager</url>
+  <url type="homepage">https://mattjakeman.com/apps/extension-manager</url>
   <url type="bugtracker">https://github.com/mjakeman/extension-manager/issues</url>
   <url type="help">https://github.com/mjakeman/extension-manager/discussions</url>
-  <keywords>
-    <keyword>Extensions</keyword>
-    <keyword>Shell</keyword>
-  </keywords>
+  <url type="donation">https://github.com/sponsors/mjakeman</url>
+  <url type="translate">https://github.com/mjakeman/extension-manager/blob/master/po/README.md</url>
+  <url type="contact">https://matrix.to/#/#extension-manager:matrix.org</url>
+  <url type="vcs-browser">https://github.com/mjakeman/extension-manager</url>
   <translation type="gettext">extension-manager</translation>
   <supports>
     <control>pointing</control>
@@ -47,8 +49,28 @@
     <display_length compare="ge">360</display_length>
   </requires>
   <releases>
+    <release version="0.5.1" date="2024-04-29">
+      <description translate="no">
+        <ul>
+          <li>Translation updates</li>
+          <li>Performance and stability</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.5.0" date="2024-03-18">
+      <description translate="no">
+        <p>The 'Performance &amp; Polish' release</p>
+        <ul>
+          <li>Compatibility with GNOME 46</li>
+          <li>Display extension icons and statistics</li>
+          <li>Search is more reliable</li>
+          <li>New widgets, better resizing, cleaner look</li>
+          <li>Translation updates</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.4.3" date="2023-11-08">
-      <description>
+      <description translate="no">
         <ul>
           <li>HOTFIX: Fix broken 'recent' and 'popularity' search filters</li>
           <li>Various stability and correctness fixes</li>
@@ -57,7 +79,7 @@
       </description>
     </release>
     <release version="0.4.2" date="2023-06-19">
-      <description>
+      <description translate="no">
         <ul>
           <li>Translation updates</li>
           <li>Upgrade Assistant scroll fix</li>
@@ -66,7 +88,7 @@
       </description>
     </release>
     <release version="0.4.1" date="2023-05-06">
-      <description>
+      <description translate="no">
         <ul>
           <li>Translation updates</li>
           <li>Official snap support</li>
@@ -75,7 +97,7 @@
       </description>
     </release>
 		<release version="0.4.0" date="2022-09-26">
-			<description>
+			<description translate="no">
 				<ul>
 					<li>Fully adaptive mobile-friendly user interface</li>
 					<li>Paginated search results</li>
@@ -90,7 +112,7 @@
 			</description>
 		</release>
     <release version="0.3.2" date="2022-08-17">
-      <description>
+      <description translate="no">
         <ul>
           <li>Translation updates</li>
           <li>Various bug fixes</li>
@@ -99,7 +121,7 @@
       </description>
     </release>
     <release version="0.3.1" date="2022-06-04">
-      <description>
+      <description translate="no">
         <ul>
           <li>Translation updates</li>
           <li>Remove release notes dialog</li>
@@ -109,7 +131,7 @@
       </description>
     </release>
     <release version="0.3.0" date="2022-03-21">
-      <description>
+      <description translate="no">
         <p>The second feature update to extension-manager. Highlights include:</p>
         <ul>
           <li>View comments and reviews</li>
@@ -125,14 +147,14 @@
       </description>
     </release>
     <release version="0.2.3" date="2022-02-21">
-      <description>
+      <description translate="no">
         <ul>
           <li>Translation updates</li>
         </ul>
       </description>
     </release>
     <release version="0.2.2" date="2022-02-02">
-      <description>
+      <description translate="no">
         <ul>
           <li>Translation updates</li>
           <li>Fix special characters in search results</li>
@@ -140,12 +162,12 @@
       </description>
     </release>
     <release version="0.2.1" date="2022-01-24">
-      <description>
+      <description translate="no">
         <p>Fixes a crash that sometimes occurs while uninstalling an extension</p>
       </description>
     </release>
     <release version="0.2.0" date="2022-01-24">
-      <description>
+      <description translate="no">
         <p>The first feature update to extension-manager. Highlights include:</p>
         <ul>
           <li>Dark theme and support for overriding the system colour scheme</li>

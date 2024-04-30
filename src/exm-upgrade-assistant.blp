@@ -1,12 +1,13 @@
 using Gtk 4.0;
 using Adw 1;
 
-template $ExmUpgradeAssistant : Adw.Window {
-  default-width: 400;
-  default-height: 550;
+template $ExmUpgradeAssistant : Adw.Dialog {
+  content-width: 400;
+  content-height: 600;
   title: _("Upgrade Assistant");
+  notify::manager => $on_bind_manager();
 
-  Adw.ToolbarView {
+  child: Adw.ToolbarView {
 
     [top]
     Adw.HeaderBar {}
@@ -31,7 +32,6 @@ template $ExmUpgradeAssistant : Adw.Window {
               orientation: vertical;
 
               Gtk.Label description {
-                xalign: 0.5;
                 wrap: true;
               }
 
@@ -48,6 +48,7 @@ template $ExmUpgradeAssistant : Adw.Window {
               halign: center;
               valign: end;
               use-underline: true;
+              clicked => $do_compatibility_check() swapped;
             }
           }
         };
@@ -57,16 +58,17 @@ template $ExmUpgradeAssistant : Adw.Window {
       	name: "waiting";
         child: Gtk.Box {
         	orientation: vertical;
+        	spacing: 12;
         	valign: center;
-        	halign: center;
-        	spacing: 10;
 
         	Gtk.Spinner {
         		spinning: true;
+        		height-request: 32;
+        		width-request: 32;
         	}
 
         	Gtk.Label counter {
-        		xalign: 0.5;
+        		styles ["title-2"]
         	}
         };
       }
@@ -104,7 +106,7 @@ template $ExmUpgradeAssistant : Adw.Window {
 								}
 
 								Gtk.ListBox user_list_box {
-									styles ["boxed-list"]
+									styles ["boxed-list", "boxed-list-placeholder"]
 									valign: start;
 									selection-mode: none;
 								}
@@ -117,7 +119,7 @@ template $ExmUpgradeAssistant : Adw.Window {
 								}
 
 								Gtk.ListBox system_list_box {
-									styles ["boxed-list"]
+									styles ["boxed-list", "boxed-list-placeholder"]
 									valign: start;
 									selection-mode: none;
 								}
@@ -127,11 +129,12 @@ template $ExmUpgradeAssistant : Adw.Window {
 								label: _("_Copy to Clipboard");
 								halign: center;
 								use-underline: true;
+								clicked => $copy_to_clipboard() swapped;
 			    		}
 				    };
 		      };
         };
       }
     };
-  }
+  };
 }

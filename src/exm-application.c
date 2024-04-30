@@ -54,13 +54,28 @@ static ExmWindow *
 get_current_window (GApplication *app)
 {
     GtkWindow *window;
+    GSettings *settings;
 
     /* Get the current window or create one if necessary. */
     window = gtk_application_get_active_window (GTK_APPLICATION (app));
     if (window == NULL)
-    window = g_object_new (EXM_TYPE_WINDOW,
-                           "application", app,
-                           NULL);
+        window = g_object_new (EXM_TYPE_WINDOW,
+                               "application", app,
+                               NULL);
+
+    settings = g_settings_new (APP_ID);
+
+    g_settings_bind (settings, "width",
+                     window, "default-width",
+                     G_SETTINGS_BIND_DEFAULT);
+    g_settings_bind (settings, "height",
+                     window, "default-height",
+                     G_SETTINGS_BIND_DEFAULT);
+    g_settings_bind (settings, "is-maximized",
+                     window, "maximized",
+                     G_SETTINGS_BIND_DEFAULT);
+
+    g_object_unref (settings);
 
     return EXM_WINDOW (window);
 }
@@ -162,43 +177,43 @@ exm_application_show_about (GSimpleAction *action,
     GtkWindow *window = NULL;
     const gchar *authors[] = {"Matthew Jakeman", NULL};
 
-    GtkWidget *about_window;
+    AdwDialog *about_dialog;
 
     g_return_if_fail (EXM_IS_APPLICATION (self));
 
     window = gtk_application_get_active_window (GTK_APPLICATION (self));
 
-    about_window = adw_about_window_new_from_appdata ("/com/mattjakeman/ExtensionManager/com.mattjakeman.ExtensionManager.metainfo.xml", APP_VERSION);
-    gtk_window_set_modal (GTK_WINDOW (about_window), TRUE);
-    gtk_window_set_transient_for (GTK_WINDOW (about_window), window);
+    about_dialog = adw_about_dialog_new_from_appdata ("/com/mattjakeman/ExtensionManager/com.mattjakeman.ExtensionManager.metainfo.xml",
+                                                      strstr (APP_ID, ".Devel") == NULL ? APP_VERSION : NULL);
 
-    adw_about_window_set_comments (ADW_ABOUT_WINDOW (about_window), _("Browse, install, and manage GNOME Shell Extensions."));
-    adw_about_window_set_developers (ADW_ABOUT_WINDOW (about_window), authors);
-    adw_about_window_set_translator_credits (ADW_ABOUT_WINDOW (about_window), _("translator-credits"));
-    adw_about_window_set_copyright (ADW_ABOUT_WINDOW (about_window), "© 2022 Matthew Jakeman");
+    adw_about_dialog_set_version (ADW_ABOUT_DIALOG (about_dialog), APP_VERSION);
+    adw_about_dialog_set_comments (ADW_ABOUT_DIALOG (about_dialog), _("Browse, install, and manage GNOME Shell Extensions."));
+    adw_about_dialog_set_developers (ADW_ABOUT_DIALOG (about_dialog), authors);
+    adw_about_dialog_set_translator_credits (ADW_ABOUT_DIALOG (about_dialog), _("translator-credits"));
+    adw_about_dialog_set_copyright (ADW_ABOUT_DIALOG (about_dialog), "© 2022 Matthew Jakeman");
 
     // Dependency Attribution
-    adw_about_window_add_legal_section (ADW_ABOUT_WINDOW (about_window),
+    adw_about_dialog_add_legal_section (ADW_ABOUT_DIALOG (about_dialog),
                                         "text-engine",
                                         "Copyright (C) 2022 Matthew Jakeman",
                                         GTK_LICENSE_MPL_2_0,
                                         NULL);
 
 #if WITH_BACKTRACE
-    adw_about_window_add_legal_section (ADW_ABOUT_WINDOW (about_window),
+    adw_about_dialog_add_legal_section (ADW_ABOUT_DIALOG (about_dialog),
                                         "libbacktrace",
                                         "Copyright (C) 2012-2016 Free Software Foundation, Inc.",
                                         GTK_LICENSE_BSD_3,
                                         NULL);
 #endif
 
-    adw_about_window_add_legal_section (ADW_ABOUT_WINDOW (about_window),
+    adw_about_dialog_add_legal_section (ADW_ABOUT_DIALOG (about_dialog),
                                         "blueprint",
                                         "Copyright (C) 2021 James Westman",
                                         GTK_LICENSE_LGPL_3_0,
                                         NULL);
 
-    gtk_window_present (GTK_WINDOW (about_window));
+    adw_dialog_present (about_dialog, GTK_WIDGET (window));
 }
 
 static void

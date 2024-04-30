@@ -1,14 +1,14 @@
 using Gtk 4.0;
 using Adw 1;
 
-template $ExmCommentDialog : Adw.Window {
-  default-width: 600;
-  default-height: 500;
+template $ExmCommentDialog : Adw.Dialog {
+  content-width: 600;
+  content-height: 600;
   width-request: 360;
   height-request: 294;
   title: _("Comments");
 
-  Adw.ToolbarView {
+  child: Adw.ToolbarView {
 
     [top]
     Adw.HeaderBar {}
@@ -21,10 +21,21 @@ template $ExmCommentDialog : Adw.Window {
           Gtk.StackPage {
             name: "page_spinner";
 
-            child: Gtk.Spinner {
-              spinning: true;
-              halign: center;
+            child: Gtk.Box {
+              orientation: vertical;
+              spacing: 12;
               valign: center;
+
+              Gtk.Spinner {
+                spinning: true;
+                height-request: 32;
+                width-request: 32;
+              }
+
+              Gtk.Label {
+              	styles["title-2"]
+              	label: _("Loading Comments");
+              }
             };
           }
 
@@ -50,5 +61,5 @@ template $ExmCommentDialog : Adw.Window {
         }
       }
     };
-  }
+  };
 }

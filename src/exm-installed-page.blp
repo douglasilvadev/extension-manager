@@ -1,116 +1,108 @@
 using Gtk 4.0;
 using Adw 1;
 
-template $ExmInstalledPage : Gtk.Widget {
-	Gtk.Box {
-		orientation: vertical;
+template $ExmInstalledPage: Gtk.Widget {
+  notify::manager => $on_bind_manager();
 
-		Gtk.ScrolledWindow {
-			vexpand: true;
+  Gtk.Box {
+    orientation: vertical;
 
-			Gtk.Box {
-				orientation: vertical;
+    Adw.PreferencesPage {
+      Adw.PreferencesGroup {
+        Adw.SwitchRow global_toggle {
+          [prefix]
+          Gtk.Image {
+            icon-name: 'puzzle-piece-symbolic';
+          }
 
-				Adw.Clamp {
-					Gtk.Box {
-					  styles ["content"]
-						orientation: vertical;
-						spacing: 10;
+          title: _("Use Extensions");
+          subtitle: _("Extensions can cause performance and stability issues.");
+        }
+      }
 
-						Gtk.ListBox {
-							styles ["boxed-list"]
-							valign: start;
-							selection-mode: none;
+      Adw.PreferencesGroup {
+        title: _("User-Installed Extensions");
 
-							Adw.SwitchRow global_toggle {
-								[prefix]
-								Gtk.Image {
-									icon-name: 'puzzle-piece-symbolic';
-								}
+        Gtk.ListBox user_list_box {
+          styles [
+            "boxed-list",
+            "boxed-list-placeholder"
+          ]
 
-								title: _("Use Extensions");
-								subtitle: _("Extensions can cause performance and stability issues.");
-							}
-						}
+          selection-mode: none;
+        }
+      }
 
-						Gtk.Label {
-							styles ["heading"]
-							xalign: 0;
-							margin-top: 20;
-							label: _("User-Installed Extensions");
-						}
+      Adw.PreferencesGroup {
+        title: _("System Extensions");
 
-						Gtk.ListBox user_list_box {
-							styles ["boxed-list"]
-							valign: start;
-							selection-mode: none;
-						}
+        Gtk.ListBox system_list_box {
+          styles [
+            "boxed-list",
+            "boxed-list-placeholder"
+          ]
 
-						Gtk.Label {
-							styles ["heading"]
-							xalign: 0;
-							margin-top: 20;
-							label: _("System Extensions");
-						}
+          selection-mode: none;
+        }
+      }
+    }
 
-						Gtk.ListBox system_list_box {
-							styles ["boxed-list"]
-							valign: start;
-							selection-mode: none;
-						}
-					}
-				}
-			}
-		}
+    Gtk.Revealer updates_action_bar {
+      reveal-child: false;
+      transition-type: slide_up;
 
-		Gtk.Revealer updates_action_bar {
-			reveal-child: false;
-			transition-type: slide_up;
+      Gtk.Box {
+        styles [
+          "actionbar",
+          "update-bar"
+        ]
 
-			Gtk.Box {
-				styles ["actionbar", "update-bar"]
-				spacing: 12;
+        spacing: 12;
 
-				Gtk.Image update_icon {
-					styles ["update"]
+        Gtk.Image update_icon {
+          styles [
+            "update"
+          ]
 
-					icon-name: "software-update-available-symbolic";
-					pixel-size: 24;
+          icon-name: "software-update-available-symbolic";
+          pixel-size: 24;
+          valign: center;
+          halign: center;
+        }
 
-					valign: center;
-					halign: center;
-				}
+        Gtk.Box {
+          orientation: vertical;
+          valign: center;
+          hexpand: true;
 
-				Gtk.Box {
-					orientation: vertical;
-					valign: center;
-					hexpand: true;
+          Gtk.Label {
+            styles [
+              "heading"
+            ]
 
-					Gtk.Label {
-						styles ["heading"]
+            xalign: 0;
+            label: _("Updates are available");
+            ellipsize: end;
+          }
 
-						xalign: 0;
-						label: _("Updates are available");
-						ellipsize: end;
-					}
+          Gtk.Label num_updates_label {
+            xalign: 0;
+            ellipsize: end;
+          }
+        }
 
-					Gtk.Label num_updates_label {
-						xalign: 0;
-						ellipsize: end;
-					}
-				}
+        [end]
+        Gtk.Button {
+          styles [
+            "suggested-action"
+          ]
 
-				[end]
-				Gtk.Button {
-					styles ["suggested-action"]
-
-					valign: center;
-					halign: center;
-
-					label: _("Log Out");
-					action-name: "app.logout";
-				}
-			}
-		}
-	}
+          valign: center;
+          halign: center;
+          label: _("Log Out");
+          action-name: "app.logout";
+        }
+      }
+    }
+  }
 }
